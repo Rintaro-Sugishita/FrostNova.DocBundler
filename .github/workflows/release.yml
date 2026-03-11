@@ -44,7 +44,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ./publish/fnb.exe
+          files: ./fnb_win-x64.zip
           generate_release_notes: true # コミットログから自動でリリースノートを作成
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
