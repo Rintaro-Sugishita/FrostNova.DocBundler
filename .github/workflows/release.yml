@@ -1,0 +1,42 @@
+name: Release Executable
+
+on:
+  push:
+    tags:
+      - 'v*' # v1.0.0 などのタグがプッシュされた時に実行
+
+jobs:
+  build:
+    runs-on: windows-latest # NativeAOT (Win) のビルドにはWindows環境が必要
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.0'
+
+      - name: Run Tests
+        run: dotnet test FrostNova.DocBundler.slnx -c Release
+
+      - name: Publish NativeAOT
+        run: |
+          dotnet publish FrostNova.DocBundler/FrostNova.DocBundler.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -o "./publish" `
+            /p:PublishAot=true `
+            /p:StripSymbols=true
+
+      - name: Rename executable
+        run: move ./publish/FrostNova.DocBundler.exe ./publish/fnb.exe
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./publish/fnb.exe
+          generate_release_notes: true # コミットログから自動でリリースノートを作成
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

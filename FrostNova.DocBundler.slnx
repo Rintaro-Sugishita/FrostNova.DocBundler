@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/FrostNova.DocBundlerTest/FrostNova.DocBundlerTest.csproj" Id="801048c7-059e-4b4c-a16c-dfed77e69205" />
+  </Folder>
+  <Folder Name="/ソリューション項目/">
+    <File Path="publish.bat" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="FrostNova.DocBundler/FrostNova.DocBundler.csproj" />
+</Solution>
