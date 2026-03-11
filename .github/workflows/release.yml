@@ -8,7 +8,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest # NativeAOT (Win) のビルドにはWindows環境が必要
-
+    permissions:
+      contents: write # リリースの作成・書き込みを許可する
     steps:
       - uses: actions/checkout@v4
 
