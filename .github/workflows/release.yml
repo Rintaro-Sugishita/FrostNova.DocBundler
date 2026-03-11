@@ -30,9 +30,6 @@ jobs:
             /p:PublishAot=true `
             /p:StripSymbols=true
 
-      - name: Rename executable
-        run: move ./publish/FrostNova.DocBundler.exe ./publish/fnb.exe
-
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
