@@ -21,20 +21,45 @@ internal class Analyzer
         Directory.CreateDirectory(outputDir);
 
         Console.WriteLine($"Output Directory: {outputDir}");
+        var pathArgs = new List<string>();
+        bool embedImages = false;
+        string customOutputDir = "bundled_docs"; // 将来用：出力先変更など
 
-        if (args.Length == 0)
+        // 1. 引数をキューに入れて順番に評価する
+        var queue = new Queue<string>(args);
+        while (queue.Count > 0)
         {
-            Console.WriteLine("Usage: fnb <file1.md> <file2.md> ...");
+            var arg = queue.Dequeue();
+
+            switch (arg.ToLower())
+            {
+                case "--embed-images":
+                    embedImages = true;
+                    break;
+
+                case "-o" or "--output": // 将来：値を取るオプションの例
+                    if (queue.TryDequeue(out var val)) customOutputDir = val;
+                    break;
+
+                default:
+                    if (!arg.StartsWith("-"))
+                    {
+                        pathArgs.Add(arg); // オプション以外はパスとして蓄積
+                    }
+                    break;
+            }
+        }
+
+        // 2. 蓄積された pathArgs に対してのみ、既存のファイル/ディレクトリ走査を実行
+        if (pathArgs.Count == 0)
+        {
+            Console.WriteLine("Usage: fnb <path> [--embed-images]");
             return;
         }
 
-        // 引数から対象ファイルをフラットなリストとして抽出
-        //var allFiles = args
-        //    .SelectMany(arg => Directory.GetFiles(Directory.GetCurrentDirectory(), arg))
-        //    .Distinct()
-        //    .ToList();
-        var allFiles = args
-            .SelectMany(arg =>
+        // あとはこの pathArgs を SelectMany に渡すだけ
+        var allFiles = pathArgs
+                .SelectMany(arg =>
             {
                 // 直接ファイルを指定（ドラッグ＆ドロップ含む）
                 if (File.Exists(arg))
@@ -89,17 +114,20 @@ internal class Analyzer
             })
             .Distinct()
             .ToList();
+        
+
+        
         // 並列実行 (CPUコアを有効活用)
         Parallel.ForEach(allFiles, file =>
         {
-            ProcessRootFile(file, outputDir);
+            ProcessRootFile(file, customOutputDir, embedImages);
         });
 
         Console.WriteLine("All files processed.");
     }
 
 
-    public static void ProcessRootFile(string targetFile, string outDir)
+    public static void ProcessRootFile(string targetFile, string outDir, bool embedImages)
     {
         if (!File.Exists(targetFile) || Path.GetExtension(targetFile).ToLower() != ".md") return;
 
@@ -112,7 +140,7 @@ internal class Analyzer
         string outputPath = Path.Combine(outDir, safeFileName);
         Console.WriteLine($"Processing: {Path.GetFileName(targetFile)} -> {safeFileName}");
         // ロジックの呼び出し
-        var result = Core.Resolve(fullPath, root, new HashSet<string>());
+        var result = Core.Resolve(fullPath, root, new HashSet<string>(), embedImages);
 
         File.WriteAllText(Path.Combine(outDir, safeFileName), result);
     }

@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
-    
+    <Version>1.1.0</Version>
     <AssemblyName>fnb</AssemblyName>
 
     <PublishAot>true</PublishAot>
@@ -19,5 +19,14 @@
     <OptimizationPreference>Size</OptimizationPreference>
     <PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="bundle.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="bundle_embedded.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>

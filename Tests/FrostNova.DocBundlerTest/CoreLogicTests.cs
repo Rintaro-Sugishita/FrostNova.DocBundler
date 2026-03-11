@@ -68,7 +68,7 @@ namespace FrostNova.DocBundlerTest
 
             // Act
             var visited = new HashSet<string>();
-            var result = Core.Resolve(Path.Combine(root, "index.md"), root, visited);
+            var result = Core.Resolve(Path.Combine(root, "index.md"), root, visited, false);
 
             // Assert
             Assert.Contains("# Index", result);
@@ -88,7 +88,7 @@ namespace FrostNova.DocBundlerTest
             temp.CreateFile("img/pic.png", ""); // ダミーファイル
 
             // Act
-            var result = Core.Resolve(docPath, root, new HashSet<string>());
+            var result = Core.Resolve(docPath, root, new HashSet<string>(), false);
 
             // Assert
             // ルート相対パス /img/pic.png に書き換わっていることを確認
@@ -104,7 +104,7 @@ namespace FrostNova.DocBundlerTest
             var mdPath = temp.CreateFile("index.md", "@import \"data.csv\"");
 
             // Act
-            var result = Core.Resolve(mdPath, temp.Path, new HashSet<string>());
+            var result = Core.Resolve(mdPath, temp.Path, new HashSet<string>(), false);
 
             // Assert
             // カンマを含むフィールドが正しく分割されているか
@@ -122,7 +122,7 @@ namespace FrostNova.DocBundlerTest
             var startPath = Path.Combine(temp.Path, "A.md");
 
             // Act
-            var result = Core.Resolve(startPath, temp.Path, new HashSet<string>());
+            var result = Core.Resolve(startPath, temp.Path, new HashSet<string>(), false);
 
             // Assert
             Assert.Contains("[Recursive Import Skip: A.md]", result);
@@ -151,7 +151,7 @@ namespace FrostNova.DocBundlerTest
                 "Ending text.\n";
 
             // Act
-            var result = Core.Resolve(Path.Combine(temp.Path, "main.md"), temp.Path, new HashSet<string>());
+            var result = Core.Resolve(Path.Combine(temp.Path, "main.md"), temp.Path, new HashSet<string>(), false);
 
             // Assert
             Assert.Equal(Normalize(expected), Normalize(result));
@@ -173,7 +173,7 @@ namespace FrostNova.DocBundlerTest
 
             // Act
             // 第2引数に temp.Path を渡すことでそこをルートとして認識させる
-            var result = Core.Resolve(deepMd, temp.Path, new HashSet<string>());
+            var result = Core.Resolve(deepMd, temp.Path, new HashSet<string>(), false);
 
             // Assert
             Assert.Equal(Normalize(expected), Normalize(result));
@@ -193,7 +193,7 @@ namespace FrostNova.DocBundlerTest
             var expected = "Sub\nSub\n";
 
             // Act
-            var result = Core.Resolve(Path.Combine(temp.Path, "main.md"), temp.Path, new HashSet<string>());
+            var result = Core.Resolve(Path.Combine(temp.Path, "main.md"), temp.Path, new HashSet<string>(), false);
 
             // Assert
             Assert.Equal(Normalize(expected), Normalize(result));
@@ -205,7 +205,7 @@ namespace FrostNova.DocBundlerTest
             using var temp = new TempTestDirectory();
             var main = temp.CreateFile("main.md", "@import \"missing.md\"");
 
-            var result = Core.Resolve(main, temp.Path, new HashSet<string>());
+            var result = Core.Resolve(main, temp.Path, new HashSet<string>(), false);
 
             // 以前実装した > [!CAUTION] が出ているか
             Assert.Contains("File Not Found: missing.md", result);
@@ -218,7 +218,7 @@ namespace FrostNova.DocBundlerTest
             temp.CreateFile("main.md", "@import \"empty.md\"");
             temp.CreateFile("empty.md", ""); // 空ファイル
 
-            var result = Core.Resolve(Path.Combine(temp.Path, "main.md"), temp.Path, new HashSet<string>());
+            var result = Core.Resolve(Path.Combine(temp.Path, "main.md"), temp.Path, new HashSet<string>(), false);
 
             // クラッシュせず、空文字（または元の行を除去した結果）が返ってくるか
             Assert.NotNull(result);
@@ -235,7 +235,7 @@ namespace FrostNova.DocBundlerTest
             File.WriteAllText(Path.Combine(subDir, "target.md"), "Space Content");
             var main = temp.CreateFile("main.md", "@import \"my docs/target.md\"");
 
-            var result = Core.Resolve(main, temp.Path, new HashSet<string>());
+            var result = Core.Resolve(main, temp.Path, new HashSet<string>(), false);
 
             Assert.Contains("Space Content", result);
         }
