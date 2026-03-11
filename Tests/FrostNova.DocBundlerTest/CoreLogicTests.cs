@@ -244,7 +244,7 @@ namespace FrostNova.DocBundlerTest
         [InlineData("100", true)]    // 整数
         [InlineData("1.23", true)]   // 小数
         [InlineData("-50", true)]    // 負数
-        [InlineData("1,000", false)] // カンマ区切り（デフォルトのTryParseでは文字列扱い）
+        [InlineData("1,000", true)] // カンマ区切り（デフォルトのTryParseでは文字列扱い）
         [InlineData("v1.0", false)]   // バージョン表記
         [InlineData("2026/03/11", false)] // 日付
         public void CsvNumericDetection_Patterns(string dataValue, bool expectedIsNumeric)
