@@ -31,6 +31,16 @@ jobs:
             /p:PublishAot=true `
             /p:StripSymbols=true
 
+      - name: Create ZIP Package
+        shell: pwsh
+        run: |
+          # publishフォルダにはexeもbatもREADMEも揃っている（設定済みなら）
+          # もしREADMEがなければ個別にコピー
+          Copy-Item "README.md" "./publish/" -ErrorAction SilentlyContinue
+          
+          # publishフォルダの中身をZIP圧縮
+          Compress-Archive -Path "./publish/*" -DestinationPath "./fnb_win-x64.zip"
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
