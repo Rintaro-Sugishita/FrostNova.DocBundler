@@ -1,5 +1,9 @@
 # FrostNova.DocBundler (`fnb`)
 
+![Coverage](https://img.shields.io/badge/coverage-92.5%25-brightgreen)
+![.NET](https://img.shields.io/badge/.NET-10.0-blue)
+![License](https://img.shields.io/badge/license-Apache%202.0-blue)
+
 A high-performance, NativeAOT-compiled Markdown bundling tool designed for developers who use **VS Code + Markdown Preview Enhanced (MPE)**.
 
 When writing technical specifications, we often use `@import` to keep documents DRY. However, LLMs (like ChatGPT or Claude) work best with a single, continuous context. `fnb` bridges this gap by merging your distributed documentation into a single, AI-ready Markdown file.
