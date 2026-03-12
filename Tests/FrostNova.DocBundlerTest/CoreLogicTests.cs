@@ -272,6 +272,36 @@ namespace FrostNova.DocBundlerTest
             }
         }
 
+        [Fact]
+        public void Resolve_WithEmbedImages_ShouldConvertImageToBase64()
+        {
+            // Arrange
+            var tempRoot = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(tempRoot);
+
+            // ダミーの画像ファイルを作成 (中身は適当なバイト列)
+            var imagePath = Path.Combine(tempRoot, "test.png");
+            File.WriteAllBytes(imagePath, new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }); // PNG header
+
+            // 画像を参照するMarkdown
+            var mdPath = Path.Combine(tempRoot, "input.md");
+            File.WriteAllText(mdPath, "![alt](test.png)");
+
+            try
+            {
+                // Act: embedImages を true にして実行
+                var result = Core.Resolve(mdPath, tempRoot, new HashSet<string>(), embedImages: true);
+
+                // Assert: 結果に Base64 文字列が含まれているか
+                // "data:image/png;base64," という文字列が含まれていれば成功
+                Assert.Contains("data:image/png;base64,", result);
+            }
+            finally
+            {
+                Directory.Delete(tempRoot, true);
+            }
+        }
+
 
 
     }

@@ -19,6 +19,12 @@
     <OptimizationPreference>Size</OptimizationPreference>
     <PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>FrostNova.DocBundlerTest</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
 
   <ItemGroup>
     <None Update="bundle.bat">

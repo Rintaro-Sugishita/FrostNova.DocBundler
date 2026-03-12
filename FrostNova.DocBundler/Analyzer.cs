@@ -13,7 +13,20 @@ internal class Analyzer
     public static void Run(string[] args)
     {
 #if DEBUG
-        Debugger.Launch();
+        //if (!System.Diagnostics.Debugger.IsAttached && Environment.UserInteractive)
+        //{
+        //    // ユニットテスト時は Environment.UserInteractive が false になることが多いですが、
+        //    // より確実にテストを避けるなら、以下のチェックを組み合わせます。
+        //    System.Diagnostics.Debugger.Launch();
+        //}
+
+        bool isTesting = AppDomain.CurrentDomain.GetAssemblies()
+        .Any(a => a.FullName!.Contains("test", StringComparison.OrdinalIgnoreCase));
+
+        if (!isTesting && !System.Diagnostics.Debugger.IsAttached)
+        {
+            System.Diagnostics.Debugger.Launch();
+        }
 #endif
         // 1. 出力ディレクトリの準備
         string baseAppPath = AppDomain.CurrentDomain.BaseDirectory;
@@ -24,41 +37,18 @@ internal class Analyzer
         var pathArgs = new List<string>();
         bool embedImages = false;
         string customOutputDir = "bundled_docs"; // 将来用：出力先変更など
-
-        // 1. 引数をキューに入れて順番に評価する
-        var queue = new Queue<string>(args);
-        while (queue.Count > 0)
-        {
-            var arg = queue.Dequeue();
-
-            switch (arg.ToLower())
-            {
-                case "--embed-images":
-                    embedImages = true;
-                    break;
-
-                case "-o" or "--output": // 将来：値を取るオプションの例
-                    if (queue.TryDequeue(out var val)) customOutputDir = val;
-                    break;
-
-                default:
-                    if (!arg.StartsWith("-"))
-                    {
-                        pathArgs.Add(arg); // オプション以外はパスとして蓄積
-                    }
-                    break;
-            }
-        }
+      
+       var config = ParseArgs(args);
 
         // 2. 蓄積された pathArgs に対してのみ、既存のファイル/ディレクトリ走査を実行
-        if (pathArgs.Count == 0)
+        if (config.PathArgs.Count == 0)
         {
             Console.WriteLine("Usage: fnb <path> [--embed-images]");
             return;
         }
 
         // あとはこの pathArgs を SelectMany に渡すだけ
-        var allFiles = pathArgs
+        var allFiles = config.PathArgs
                 .SelectMany(arg =>
             {
                 // 直接ファイルを指定（ドラッグ＆ドロップ含む）
@@ -71,29 +61,9 @@ internal class Analyzer
                 if (Directory.Exists(arg))
                 {
                     return Directory.GetFiles(arg, "*.md")
-                        .Where(file =>
-                        {
-                            try
-                            {
-                                // ファイルを開いて、どこかにレベル1見出しがあるか探す
-                                using var reader = new StreamReader(file);
-                                string? line;
-                                // パフォーマンスのため、最初の100行程度を確認すれば十分
-                                int lineCount = 0;
-                                while ((line = reader.ReadLine()) != null && lineCount < 100)
-                                {
-                                    if (line.StartsWith("# ")) return true;
-                                    lineCount++;
-                                }
-                                return false;
-                            }
-                            catch
-                            {
-                                return false;
-                            }
-                        })
+                        .Where(IsRootMarkdown) // ← ここをメソッド参照にする
                         .Select(Path.GetFullPath);
-                }                
+                }
                 // ワイルドカード指定
                 try
                 {
@@ -127,7 +97,52 @@ internal class Analyzer
     }
 
 
-    public static void ProcessRootFile(string targetFile, string outDir, bool embedImages)
+    // Analyzer.cs 内で抽出ロジックを分離
+    internal static bool IsRootMarkdown(string filePath)
+    {
+        try
+        {
+            using var reader = new StreamReader(filePath);
+            string? line;
+            int lineCount = 0;
+            while ((line = reader.ReadLine()) != null && lineCount < 100)
+            {
+                if (line.StartsWith("# ")) return true;
+                lineCount++;
+            }
+            return false;
+        }
+        catch { return false; }
+    }
+
+    // Analyzer.cs 内でロジックを切り出し
+    internal record RunConfig(List<string> PathArgs, bool EmbedImages, string CustomOutputDir);
+
+    internal static RunConfig ParseArgs(string[] args)
+    {
+        var pathArgs = new List<string>();
+        bool embedImages = false;
+        string customOutputDir = "bundled_docs";
+
+        var queue = new Queue<string>(args);
+        while (queue.Count > 0)
+        {
+            var arg = queue.Dequeue();
+            switch (arg.ToLower())
+            {
+                case "--embed-images": embedImages = true; break;
+                case "-o" or "--output":
+                    if (queue.TryDequeue(out var val)) customOutputDir = val;
+                    break;
+                default:
+                    if (!arg.StartsWith("-")) pathArgs.Add(arg);
+                    break;
+            }
+        }
+        return new RunConfig(pathArgs, embedImages, customOutputDir);
+    }
+
+    internal static void ProcessRootFile(string targetFile, string outDir, bool embedImages)
     {
         if (!File.Exists(targetFile) || Path.GetExtension(targetFile).ToLower() != ".md") return;
 
@@ -145,7 +160,7 @@ internal class Analyzer
         File.WriteAllText(Path.Combine(outDir, safeFileName), result);
     }
 
-    static string FindRootPath(string startPath)
+ internal   static string FindRootPath(string startPath)
     {
         var dir = new DirectoryInfo(Path.GetDirectoryName(startPath)!);
         while (dir != null)

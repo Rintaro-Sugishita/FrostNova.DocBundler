@@ -252,7 +252,7 @@ public static partial class Core
     /// <summary>
     /// 画像ファイルをBase64エンコードされたMarkdown記法に変換します。
     /// </summary>
-    private static string EmbedImageAsBase64(string absPath, string alt, string defaultValue)
+    internal static string EmbedImageAsBase64(string absPath, string alt, string defaultValue)
     {
         try
         {
