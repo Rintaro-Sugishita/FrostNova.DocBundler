@@ -34,10 +34,8 @@ internal class Analyzer
         Directory.CreateDirectory(outputDir);
 
         Console.WriteLine($"Output Directory: {outputDir}");
-        var pathArgs = new List<string>();
-        bool embedImages = false;
         string customOutputDir = "bundled_docs"; // 将来用：出力先変更など
-      
+
        var config = ParseArgs(args);
 
         // 2. 蓄積された pathArgs に対してのみ、既存のファイル/ディレクトリ走査を実行
@@ -90,7 +88,7 @@ internal class Analyzer
         // 並列実行 (CPUコアを有効活用)
         Parallel.ForEach(allFiles, file =>
         {
-            ProcessRootFile(file, customOutputDir, embedImages);
+            ProcessRootFile(file, customOutputDir, config.EmbedImages);
         });
 
         Console.WriteLine("All files processed.");
